@@ -7,11 +7,11 @@ Use the sliders for **wall height**, **sea level rise by 2100**, and **today's 1
 **Live site:** https://lucyhale9.github.io/Climate-Seawall-Website/
 
 ## Group members
-Tam Bui
-Reese Lacayo
-Lucy Hale
+- Tam Bui
+- Reese Lacayo
+- Lucy Hale
 
 ## Notes
 - Plain HTML/CSS/JavaScript in one file (`index.html`), with no build step.
-- Values marked "placeholder" on the page still need to be checked against our course readings.
+- Sources for every slider range and fixed value are listed at the bottom of the page under "Where the numbers come from."
 - This is a simplified teaching model, not an engineering design tool.

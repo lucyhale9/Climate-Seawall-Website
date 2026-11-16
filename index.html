@@ -57,21 +57,6 @@
   .muted { color: var(--text-secondary); }
   .small { font-size: .88rem; }
 
-  .ph {
-    display: inline-block;
-    background: var(--ph-bg);
-    color: var(--ph-ink);
-    border: 1px solid #f0d27a;
-    border-radius: 4px;
-    font-size: .72rem;
-    font-weight: 600;
-    padding: 0 .35rem;
-    margin-left: .25rem;
-    vertical-align: middle;
-    letter-spacing: .02em;
-    text-transform: uppercase;
-  }
-
   /* Layout for explorer */
   .explorer { display: grid; grid-template-columns: 340px 1fr; gap: 1.25rem; align-items: start; }
   @media (max-width: 860px) { .explorer { grid-template-columns: 1fr; } }
@@ -274,18 +259,23 @@
 
   <section class="card">
     <h2>Where The Numbers Come From</h2>
-    <p class="muted small">Values marked <span class="ph">placeholder</span> were chosen to be physically reasonable but still need to be checked against, or replaced with, numbers from our ATMO 215 course readings.</p>
+    <p class="muted small">The slider ranges and fixed values in this model come from the sources below. This is a simplified teaching model, so the numbers describe a typical U.S. coastal city rather than one specific place.</p>
     <ul class="sources">
-      <li><strong>Sea level rise by 2100: slider range 0.3–2.0 m, default 0.75 m</strong> <span class="ph">placeholder</span><br>
-        The IPCC Sixth Assessment Report (AR6, Working Group I, 2021) gives likely global-mean rise by 2100 of roughly 0.3–0.6 m for low emissions and 0.6–1.0 m for very high emissions. It also says rise approaching 2 m can't be ruled out if the ice sheets become unstable. The U.S. NOAA 2022 <em>Sea Level Rise Technical Report</em> uses scenarios from 0.3 m (Low) to 2.0 m (High) by 2100.</li>
-      <li><strong>Today's rate of sea level rise: 4 mm per year</strong> (where the curve starts) <span class="ph">placeholder</span><br>
-        Satellite measurements (NASA/NOAA altimetry) show global sea level rising about 3–4.5 mm per year in recent years, and the rate is speeding up.</li>
-      <li><strong>Today's 100-year storm surge: slider range 1.0–4.0 m, default 2.0 m</strong> <span class="ph">placeholder</span><br>
-        Order of magnitude for extreme storm water levels above average sea level at U.S. tide gauges. It's about 1–2 m on many sheltered coasts and several meters on hurricane-exposed Gulf and Atlantic coasts. Should be replaced with a specific city's tide-gauge value.</li>
-      <li><strong>Gumbel scale β = 0.25 m</strong> (how fast big surges get rarer) <span class="ph">placeholder</span><br>
-        Typical values from extreme-value fits to U.S. tide gauges are roughly 0.1–0.3 m. This number decides how strongly sea level rise multiplies the overtopping risk: every β meters of rise multiplies the yearly chance by about e ≈ 2.7. This is the reason studies find that today's "100-year" floods could happen every year or so by 2100 at many locations (IPCC Special Report on the Ocean and Cryosphere, 2019).</li>
-      <li><strong>Seawall height: slider range 1.0–5.0 m, default 2.5 m</strong> <span class="ph">placeholder</span><br>
-        Covers a range from low flood walls to large urban storm barriers.</li>
+      <li><strong>Sea level rise by 2100: slider range 0.3–2.0 m, default 0.75 m</strong><br>
+        The IPCC Sixth Assessment Report gives a likely global-mean rise by 2100 of 0.28–0.55 m under very low emissions (SSP1-1.9) and 0.63–1.01 m under very high emissions (SSP5-8.5), relative to 1995–2014. It also says about 2 m by 2100 cannot be ruled out if ice sheets lose mass rapidly. The U.S. interagency 2022 Sea Level Rise Technical Report uses five scenarios for 2100: Low 0.3 m, Intermediate-Low 0.5 m, Intermediate 1.0 m, Intermediate-High 1.5 m and High 2.0 m. The slider spans the NOAA Low to High scenarios. The 0.75 m default sits inside the IPCC very-high-emissions likely range.<br>
+        <span class="small muted">Sources: IPCC (2021), <em>Climate Change 2021: The Physical Science Basis</em>, Working Group I contribution to AR6 (see also IPCC AR6 Synthesis Report, 2023, Fig. 3.4). Sweet, W.V. et al. (2022), <em>Global and Regional Sea Level Rise Scenarios for the United States</em>, NOAA Technical Report NOS 01.</span></li>
+      <li><strong>Today's rate of sea level rise: about 4 mm per year</strong> (where the curve starts)<br>
+        NASA's satellite altimetry record (TOPEX/Poseidon, Jason-1/2/3, Sentinel-6) shows the rate of global sea level rise doubled from about 2.1 mm per year in 1993 to about 4.5 mm per year in 2023. The model uses 4 mm per year as a round value close to recent rates.<br>
+        <span class="small muted">Sources: Hamlington, B.D. et al. (2024), The rate of global sea level rise doubled during the past three decades, <em>Communications Earth &amp; Environment</em> 5, 601. NASA Sea Level Change Team (sealevel.nasa.gov).</span></li>
+      <li><strong>Today's 100-year storm surge: slider range 1.0–4.0 m, default 2.0 m</strong><br>
+        NOAA calculates the water level with a 1% chance per year (the "100-year" level) at long-term U.S. tide gauges from their records of annual highest water levels. These levels include the tide and storm surge together. The slider spans sheltered coasts to hurricane-exposed coasts. Record hurricane surges go far beyond this range: the National Hurricane Center reports peak surges of about 15–20 ft (4.5–6 m) in Hurricane Ike (2008) and 25–28 ft (7.6–8.5 m) in Hurricane Katrina (2005).<br>
+        <span class="small muted">Sources: Zervas, C. (2013), <em>Extreme Water Levels of the United States 1893–2010</em>, NOAA Technical Report NOS CO-OPS 067, and the NOAA CO-OPS Extreme Water Levels product (tidesandcurrents.noaa.gov/est). NOAA National Hurricane Center, Storm Surge Overview (nhc.noaa.gov/surge).</span></li>
+      <li><strong>Gumbel scale β = 0.25 m</strong> (how fast big surges get rarer)<br>
+        Researchers describe each tide gauge's yearly extremes with a "scale parameter," the height over which an event becomes about 2.7 times rarer. A smaller value means sea level rise increases flood frequency faster. Values are around 0.1 m at many gauges worldwide and larger on coasts exposed to big storms. We use 0.25 m to represent a storm-exposed U.S. coast. Because of this exponential relationship, a 2012 study of 55 U.S. tide gauges found that today's 100-year water levels could become 10-year events by 2050 at about a third of the gauges.<br>
+        <span class="small muted">Sources: Hunter, J. (2012), A simple technique for estimating an allowance for uncertain sea-level rise, <em>Climatic Change</em> 113, 239–252. Woodworth, P.L., Hunter, J.R., Marcos, M. &amp; Hughes, C.W. (2021), Towards reliable global allowances for sea level rise, <em>Global and Planetary Change</em> 203, 103522. Tebaldi, C., Strauss, B.H. &amp; Zervas, C.E. (2012), Modelling sea level rise impacts on storm surges along US coasts, <em>Environmental Research Letters</em> 7, 014032.</span></li>
+      <li><strong>Seawall height: slider range 1.0–5.0 m, default 2.5 m</strong><br>
+        The range covers low flood walls up to major storm barriers. At the top of the range, the Galveston Seawall in Texas, built after the 1900 hurricane, was designed with its top 17 ft (about 5.2 m) above mean low water. The U.S. Army Corps of Engineers sets the height of coastal protection from a design water level plus wave runup, and requires that sea level change be considered over a project's lifetime.<br>
+        <span class="small muted">Sources: U.S. Army Corps of Engineers (1995), <em>Design of Coastal Revetments, Seawalls, and Bulkheads</em>, EM 1110-2-1614. U.S. Army Corps of Engineers (2013), <em>Incorporating Sea Level Change in Civil Works Programs</em>, ER 1100-2-8162. American Society of Civil Engineers, Galveston Seawall and Grade Raising (National Historic Civil Engineering Landmark).</span></li>
     </ul>
   </section>
 
@@ -295,11 +285,11 @@
 
 <script>
 (function () {
-  // ---------- Model parameters (PLACEHOLDERS — replace from course readings) ----------
+  // ---------- Model parameters (sources listed in "Where the numbers come from") ----------
   const START = new Date().getFullYear() < 2026 ? 2026 : new Date().getFullYear(); // wall finished this year
   const END = 2100;
-  const RATE_NOW = 0.004;   // m/yr, today's rate of sea level rise  [placeholder]
-  const BETA = 0.25;        // m, Gumbel scale of annual max surge   [placeholder]
+  const RATE_NOW = 0.004;   // m/yr, today's rate of sea level rise (NASA satellite altimetry)
+  const BETA = 0.25;        // m, Gumbel scale of annual max water level (tide-gauge fits)
   const Y100 = -Math.log(-Math.log(0.99)); // reduced variate for 1%/yr event ≈ 4.60
 
   const years = [];
