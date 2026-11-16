@@ -144,7 +144,7 @@
 
 <header>
   <div class="inner">
-    <h1>How high should the seawall be?</h1>
+    <h1>How High Should The Seawall Be?</h1>
     <p>A coastal city is about to build a seawall it expects to last until 2100. Today's storms are only part of the risk. Sea level keeps rising, so every storm in the future starts from higher water. Move the sliders to see how often the wall would be overtopped over its lifetime.</p>
   </div>
 </header>
@@ -152,33 +152,33 @@
 <main>
 
   <section class="card">
-    <h2>The issue in plain language</h2>
+    <h2>The Issue</h2>
     <p>Picture the ocean on a calm day. When a big storm comes through, wind and low air pressure push the water above that calm level for a few hours. That temporary bump is the <strong>storm surge</strong>. A seawall only has to be taller than the calm sea <em>plus</em> the surge.</p>
     <p>Here's the catch: <strong>sea level rise raises the starting line</strong>. Even if storms never get any stronger, the same storm in 2080 rides on top of higher water than it does today, so it climbs higher up the wall. A wall that would only be overtopped by a once-in-500-years storm today might be overtopped by a once-in-20-years storm by the end of the century. The city has to choose a height <em>now</em> for water levels that will keep changing for the next 75 years.</p>
   </section>
 
   <section class="card">
-    <h2>Explore it</h2>
+    <h2>Explore It</h2>
     <div class="explorer">
 
       <!-- Controls -->
       <div>
         <div class="slider">
-          <label for="wall">Seawall height <span class="val" id="wall-val"></span></label>
+          <label for="wall">Seawall Height <span class="val" id="wall-val"></span></label>
           <input type="range" id="wall" min="1.0" max="5.0" step="0.1" value="2.5">
           <div class="range-ends"><span>1.0 m</span><span>5.0 m</span></div>
           <p class="help">Height of the top of the wall above <strong>today's</strong> average sea level. This is the city's decision.</p>
         </div>
 
         <div class="slider">
-          <label for="slr">Sea level rise by 2100 <span class="val" id="slr-val"></span></label>
+          <label for="slr">Sea Level Rise By 2100 <span class="val" id="slr-val"></span></label>
           <input type="range" id="slr" min="0.3" max="2.0" step="0.05" value="0.75">
           <div class="range-ends"><span>0.3 m (low)</span><span>2.0 m (high)</span></div>
           <p class="help">How much higher average sea level is in 2100 than today. It depends mostly on future emissions and on how fast the ice sheets melt, and nobody knows it for sure.</p>
         </div>
 
         <div class="slider">
-          <label for="surge">Today's 100-year storm surge <span class="val" id="surge-val"></span></label>
+          <label for="surge">Today's 100-Year Storm Surge <span class="val" id="surge-val"></span></label>
           <input type="range" id="surge" min="1.0" max="4.0" step="0.1" value="2.0">
           <div class="range-ends"><span>1.0 m (sheltered)</span><span>4.0 m (exposed)</span></div>
           <p class="help">How stormy this coastline is. It's the surge height that has a 1% chance of happening in any given year at today's sea level. This is set by local geography and weather, not by the city.</p>
@@ -222,7 +222,7 @@
   </section>
 
   <section class="card">
-    <h2>What to notice when you move the sliders</h2>
+    <h2>What To Notice Moving The Sliders</h2>
     <ul class="notice">
       <li><strong>The curve bends upward.</strong> Even with storms that never change, the chance of overtopping grows every year because the starting water level keeps rising. Compare the blue line with the gray dashed "no sea level rise" line. The gap between them is the risk sea level rise adds.</li>
       <li><strong>The sliders work together.</strong> Set the wall to 2.5 m. With 0.3 m of sea level rise the wall stays mostly safe until 2100, but with 1.5 m it falls below "100-year" protection in the 2060s and is overtopped roughly once every 8 years by the 2090s. The same wall can be a good choice in one future and a bad choice in another.</li>
@@ -254,7 +254,7 @@
   </section>
 
   <section class="card">
-    <h2>How the math works</h2>
+    <h2>How The Math Works</h2>
     <p><strong>1. Storm surge.</strong> We treat the biggest storm surge each year as a random draw from a <em>Gumbel distribution</em>, the standard tool for "largest event of the year." Small surges are common and big ones are rare. The chance that one year's biggest surge exceeds a height <em>x</em> is:</p>
     <span class="formula">P(surge &gt; x) = 1 − exp( −exp( −(x − μ) / β ) )</span>
     <p>β (the "scale") controls how quickly big surges get rarer. We set μ so that the surge with a 1% yearly chance equals your "today's 100-year storm surge" slider value.</p>
@@ -273,7 +273,7 @@
   </section>
 
   <section class="card">
-    <h2>Where the numbers come from</h2>
+    <h2>Where The Numbers Come From</h2>
     <p class="muted small">Values marked <span class="ph">placeholder</span> were chosen to be physically reasonable but still need to be checked against, or replaced with, numbers from our ATMO 215 course readings.</p>
     <ul class="sources">
       <li><strong>Sea level rise by 2100: slider range 0.3–2.0 m, default 0.75 m</strong> <span class="ph">placeholder</span><br>
