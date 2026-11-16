@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How High Should the Seawall Be? | Sea Level Rise × Storm Surge</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0: #f4f3ef;
+    --surface-1: #fcfcfb;
+    --border: #dddcd6;
+    --grid: #ebeae5;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #7a7973;
+    --series-1: #2a78d6;      /* with sea level rise */
+    --baseline: #8f8e88;      /* no sea level rise comparison */
+    --reference: #3b3a37;     /* 1% line */
+    --sea: #2a78d6;
+    --sea-light: #cde2fb;
+    --storm: #8fbdf3;
+    --wall: #6b6a65;
+    --land: #c9b994;
+    --danger: #c62f2e;
+    --safe: #1d7a3c;
+    --ph-bg: #fff3cd;
+    --ph-ink: #7a5300;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+  header {
+    background: #10324f;
+    color: #fff;
+    padding: 2.25rem 1.25rem 2rem;
+  }
+  header .inner, main { max-width: 1080px; margin: 0 auto; }
+  header h1 { margin: 0 0 .4rem; font-size: clamp(1.6rem, 3.5vw, 2.3rem); line-height: 1.2; }
+  header p { margin: 0; max-width: 760px; color: #d6e4f2; font-size: 1.05rem; }
+  main { padding: 1.5rem 1.25rem 3rem; }
+  section.card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.25rem;
+  }
+  h2 { font-size: 1.3rem; margin: 0 0 .6rem; }
+  h3 { font-size: 1.05rem; margin: 1rem 0 .35rem; }
+  p { margin: .4rem 0 .8rem; }
+  .muted { color: var(--text-secondary); }
+  .small { font-size: .88rem; }
+
+  .ph {
+    display: inline-block;
+    background: var(--ph-bg);
+    color: var(--ph-ink);
+    border: 1px solid #f0d27a;
+    border-radius: 4px;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 0 .35rem;
+    margin-left: .25rem;
+    vertical-align: middle;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+  }
+
+  /* Layout for explorer */
+  .explorer { display: grid; grid-template-columns: 340px 1fr; gap: 1.25rem; align-items: start; }
+  @media (max-width: 860px) { .explorer { grid-template-columns: 1fr; } }
+
+  .slider { margin-bottom: 1.3rem; }
+  .slider label { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; font-weight: 600; }
+  .slider .val { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--series-1); white-space: nowrap; }
+  .slider input[type=range] { width: 100%; margin: .45rem 0 .2rem; accent-color: var(--series-1); }
+  .slider .range-ends { display: flex; justify-content: space-between; font-size: .78rem; color: var(--text-muted); }
+  .slider .help { font-size: .86rem; color: var(--text-secondary); margin: .3rem 0 0; }
+
+  .hero {
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    background: #f1f6fd;
+    border: 1px solid #cde2fb;
+    margin-bottom: 1rem;
+  }
+  .hero .label { font-size: .92rem; color: var(--text-secondary); }
+  .hero .value { font-size: 3.4rem; font-weight: 700; line-height: 1.05; margin: .15rem 0; }
+  .hero .sub { font-size: .9rem; color: var(--text-secondary); }
+
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+  .stat { border: 1px solid var(--border); border-radius: 8px; padding: .55rem .7rem; background: #fff; }
+  .stat .label { font-size: .78rem; color: var(--text-secondary); line-height: 1.3; }
+  .stat .value { font-size: 1.15rem; font-weight: 700; margin-top: .15rem; }
+
+  /* Chart */
+  .chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+  .chart-head h3 { margin: 0; font-size: 1.08rem; }
+  .toggle { font-size: .85rem; color: var(--text-secondary); display: flex; gap: .35rem; align-items: center; cursor: pointer; }
+  .legend { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; font-size: .84rem; color: var(--text-secondary); margin: .5rem 0 .25rem; }
+  .legend span { display: inline-flex; align-items: center; gap: .4rem; }
+  .legend svg { flex: none; }
+  .chart-wrap { position: relative; }
+  #chart { width: 100%; height: auto; display: block; }
+  #chart text { font-family: inherit; }
+  .tooltip {
+    position: absolute; pointer-events: none; background: #fff; border: 1px solid var(--border);
+    border-radius: 8px; padding: .5rem .65rem; font-size: .82rem; box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    min-width: 200px; opacity: 0; transition: opacity .1s; z-index: 5;
+  }
+  .tooltip .yr { font-weight: 700; margin-bottom: .2rem; }
+  .tooltip .row { display: flex; justify-content: space-between; gap: 1rem; }
+  .tooltip .row b { font-variant-numeric: tabular-nums; }
+
+  /* Cross-section */
+  #section-svg { width: 100%; height: auto; display: block; }
+  .xs-caption { font-size: .86rem; color: var(--text-secondary); margin-top: .3rem; }
+
+  /* Table */
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  caption { text-align: left; font-weight: 700; font-size: 1.02rem; padding-bottom: .5rem; }
+  th, td { padding: .45rem .6rem; border-bottom: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; }
+  th { color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border); vertical-align: bottom; }
+  th:first-child, td:first-child { text-align: left; }
+  tr.over-1 td.p { color: var(--danger); font-weight: 600; }
+  .table-scroll { overflow-x: auto; }
+
+  ul.notice li { margin-bottom: .4rem; }
+  details { margin-top: .5rem; }
+  summary { cursor: pointer; font-weight: 600; }
+  code, .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; background: #f0efea; padding: .05rem .3rem; border-radius: 4px; }
+  .formula { display: block; padding: .5rem .7rem; margin: .4rem 0; white-space: pre-wrap; }
+  .sources li { margin-bottom: .55rem; }
+  footer { text-align: center; font-size: .82rem; color: var(--text-muted); padding: 1rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <h1>How high should the seawall be?</h1>
+    <p>A coastal city is about to build a seawall it expects to last until 2100. Today's storms are only part of the risk. Sea level keeps rising, so every storm in the future starts from higher water. Move the sliders to see how often the wall would be overtopped over its lifetime.</p>
+  </div>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>The issue in plain language</h2>
+    <p>Picture the ocean on a calm day. When a big storm comes through, wind and low air pressure push the water above that calm level for a few hours. That temporary bump is the <strong>storm surge</strong>. A seawall only has to be taller than the calm sea <em>plus</em> the surge.</p>
+    <p>Here's the catch: <strong>sea level rise raises the starting line</strong>. Even if storms never get any stronger, the same storm in 2080 rides on top of higher water than it does today, so it climbs higher up the wall. A wall that would only be overtopped by a once-in-500-years storm today might be overtopped by a once-in-20-years storm by the end of the century. The city has to choose a height <em>now</em> for water levels that will keep changing for the next 75 years.</p>
+  </section>
+
+  <section class="card">
+    <h2>Explore it</h2>
+    <div class="explorer">
+
+      <!-- Controls -->
+      <div>
+        <div class="slider">
+          <label for="wall">Seawall height <span class="val" id="wall-val"></span></label>
+          <input type="range" id="wall" min="1.0" max="5.0" step="0.1" value="2.5">
+          <div class="range-ends"><span>1.0 m</span><span>5.0 m</span></div>
+          <p class="help">Height of the top of the wall above <strong>today's</strong> average sea level. This is the city's decision.</p>
+        </div>
+
+        <div class="slider">
+          <label for="slr">Sea level rise by 2100 <span class="val" id="slr-val"></span></label>
+          <input type="range" id="slr" min="0.3" max="2.0" step="0.05" value="0.75">
+          <div class="range-ends"><span>0.3 m (low)</span><span>2.0 m (high)</span></div>
+          <p class="help">How much higher average sea level is in 2100 than today. It depends mostly on future emissions and on how fast the ice sheets melt, and nobody knows it for sure.</p>
+        </div>
+
+        <div class="slider">
+          <label for="surge">Today's 100-year storm surge <span class="val" id="surge-val"></span></label>
+          <input type="range" id="surge" min="1.0" max="4.0" step="0.1" value="2.0">
+          <div class="range-ends"><span>1.0 m (sheltered)</span><span>4.0 m (exposed)</span></div>
+          <p class="help">How stormy this coastline is. It's the surge height that has a 1% chance of happening in any given year at today's sea level. This is set by local geography and weather, not by the city.</p>
+        </div>
+
+        <div class="hero" aria-live="polite">
+          <div class="label">Chance the wall is overtopped <strong>at least once</strong> between <span id="start-yr"></span> and 2100</div>
+          <div class="value" id="lifetime">–</div>
+          <div class="sub" id="lifetime-sub"></div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="label">Overtopping chance <strong>this year</strong></div><div class="value" id="p-now">–</div></div>
+          <div class="stat"><div class="label">Overtopping chance <strong>in 2100</strong></div><div class="value" id="p-2100">–</div></div>
+          <div class="stat"><div class="label">Expected number of overtoppings by 2100</div><div class="value" id="expected">–</div></div>
+          <div class="stat"><div class="label">Year the wall falls below "100-year" protection</div><div class="value" id="cross-yr">–</div></div>
+        </div>
+      </div>
+
+      <!-- Chart + section -->
+      <div>
+        <div class="chart-head">
+          <h3 id="chart-title">Chance per year that the seawall is overtopped, <span id="chart-yrs"></span></h3>
+          <label class="toggle"><input type="checkbox" id="logscale"> Log scale (shows small chances better)</label>
+        </div>
+        <div class="legend" aria-hidden="true">
+          <span><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--series-1)" stroke-width="2.5" stroke-linecap="round"/></svg>With sea level rise (your setting)</span>
+          <span><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--baseline)" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/></svg>If sea level stayed at today's level</span>
+          <span><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--reference)" stroke-width="1.25" stroke-dasharray="2 3"/></svg>1% per year (the "100-year" standard)</span>
+        </div>
+        <div class="chart-wrap">
+          <svg id="chart" viewBox="0 0 720 380" role="img" aria-labelledby="chart-title"></svg>
+          <div class="tooltip" id="tooltip"></div>
+        </div>
+
+        <h3 style="margin-top:1.2rem">What the water looks like in 2100 during a 100-year storm</h3>
+        <svg id="section-svg" viewBox="0 0 720 260" role="img" aria-label="Cross-section of the seawall showing today's sea level, sea level in 2100, and the 100-year storm water level in 2100"></svg>
+        <div class="xs-caption" id="xs-caption"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>What to notice when you move the sliders</h2>
+    <ul class="notice">
+      <li><strong>The curve bends upward.</strong> Even with storms that never change, the chance of overtopping grows every year because the starting water level keeps rising. Compare the blue line with the gray dashed "no sea level rise" line. The gap between them is the risk sea level rise adds.</li>
+      <li><strong>The sliders work together.</strong> Set the wall to 2.5 m. With 0.3 m of sea level rise the wall stays mostly safe until 2100, but with 1.5 m it falls below "100-year" protection in the 2060s and is overtopped roughly once every 8 years by the 2090s. The same wall can be a good choice in one future and a bad choice in another.</li>
+      <li><strong>Small changes in height matter a lot.</strong> Each extra ~25 cm of wall cuts the yearly chance by about a factor of 2.7, and each extra ~25 cm of sea level rise multiplies it by the same amount. That's why a few tenths of a meter can change the big number dramatically.</li>
+      <li><strong>"1% per year" isn't "safe for 100 years."</strong> Even a wall that stays exactly at 1% per year has about a 53% chance of being overtopped at least once over 75 years. Watch the big number. It counts every year of the wall's life.</li>
+      <li><strong>Stormier coastlines need taller walls.</strong> Raise "today's 100-year storm surge" and the whole curve jumps up. Sea level rise then pushes it up further on top of that.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Year-by-year numbers</h2>
+    <div class="table-scroll">
+      <table id="table">
+        <caption>Sea level, surge needed to overtop, and overtopping chance for your current slider settings</caption>
+        <thead>
+          <tr>
+            <th scope="col">Year</th>
+            <th scope="col">Sea level rise since today (m)</th>
+            <th scope="col">Storm surge needed to overtop (m)</th>
+            <th scope="col">Chance of overtopping that year (%)</th>
+            <th scope="col">Roughly once every… (years)</th>
+            <th scope="col">Chance of at least one overtopping so far (%)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="small muted">Red values are above 1% per year, meaning the wall gives less protection than the common "100-year" design standard.</p>
+  </section>
+
+  <section class="card">
+    <h2>How the math works</h2>
+    <p><strong>1. Storm surge.</strong> We treat the biggest storm surge each year as a random draw from a <em>Gumbel distribution</em>, the standard tool for "largest event of the year." Small surges are common and big ones are rare. The chance that one year's biggest surge exceeds a height <em>x</em> is:</p>
+    <span class="formula">P(surge &gt; x) = 1 − exp( −exp( −(x − μ) / β ) )</span>
+    <p>β (the "scale") controls how quickly big surges get rarer. We set μ so that the surge with a 1% yearly chance equals your "today's 100-year storm surge" slider value.</p>
+    <p><strong>2. Sea level rise.</strong> Average sea level starts at today's level and rises to your 2100 value along a smooth curve that starts at today's observed rate and speeds up over time, like the IPCC and NOAA projections.</p>
+    <p><strong>3. Overtopping in one year.</strong> The wall is overtopped if <code>sea level that year + that year's biggest surge &gt; wall height</code>. So the surge only has to exceed <code>wall height − sea level rise so far</code>, and we plug that into the formula above.</p>
+    <p><strong>4. Lifetime chance.</strong> Assuming each year is independent, the chance the wall is <em>never</em> overtopped is (1 − p<sub>year 1</sub>) × (1 − p<sub>year 2</sub>) × … × (1 − p<sub>2100</sub>). The big number is 1 minus that.</p>
+    <details>
+      <summary>Simplifications we made (worth discussing)</summary>
+      <ul>
+        <li>Storms are assumed to stay the same strength and frequency. Only the baseline moves. Real hurricanes may get stronger with warming, which would make things worse.</li>
+        <li>"Overtopping" means still water above the top of the wall. Waves can splash over a wall even when the still water is lower, and tides add to or subtract from surge. We fold all of this into one "storm water level."</li>
+        <li>Local land sinking (subsidence) adds to sea level rise in many cities and isn't modeled separately. You could fold it into the sea level rise slider.</li>
+        <li>The wall doesn't settle, erode, or get raised later. Real cities often plan to raise walls in stages.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>Where the numbers come from</h2>
+    <p class="muted small">Values marked <span class="ph">placeholder</span> were chosen to be physically reasonable but still need to be checked against, or replaced with, numbers from our ATMO 215 course readings.</p>
+    <ul class="sources">
+      <li><strong>Sea level rise by 2100: slider range 0.3–2.0 m, default 0.75 m</strong> <span class="ph">placeholder</span><br>
+        The IPCC Sixth Assessment Report (AR6, Working Group I, 2021) gives likely global-mean rise by 2100 of roughly 0.3–0.6 m for low emissions and 0.6–1.0 m for very high emissions. It also says rise approaching 2 m can't be ruled out if the ice sheets become unstable. The U.S. NOAA 2022 <em>Sea Level Rise Technical Report</em> uses scenarios from 0.3 m (Low) to 2.0 m (High) by 2100.</li>
+      <li><strong>Today's rate of sea level rise: 4 mm per year</strong> (where the curve starts) <span class="ph">placeholder</span><br>
+        Satellite measurements (NASA/NOAA altimetry) show global sea level rising about 3–4.5 mm per year in recent years, and the rate is speeding up.</li>
+      <li><strong>Today's 100-year storm surge: slider range 1.0–4.0 m, default 2.0 m</strong> <span class="ph">placeholder</span><br>
+        Order of magnitude for extreme storm water levels above average sea level at U.S. tide gauges. It's about 1–2 m on many sheltered coasts and several meters on hurricane-exposed Gulf and Atlantic coasts. Should be replaced with a specific city's tide-gauge value.</li>
+      <li><strong>Gumbel scale β = 0.25 m</strong> (how fast big surges get rarer) <span class="ph">placeholder</span><br>
+        Typical values from extreme-value fits to U.S. tide gauges are roughly 0.1–0.3 m. This number decides how strongly sea level rise multiplies the overtopping risk: every β meters of rise multiplies the yearly chance by about e ≈ 2.7. This is the reason studies find that today's "100-year" floods could happen every year or so by 2100 at many locations (IPCC Special Report on the Ocean and Cryosphere, 2019).</li>
+      <li><strong>Seawall height: slider range 1.0–5.0 m, default 2.5 m</strong> <span class="ph">placeholder</span><br>
+        Covers a range from low flood walls to large urban storm barriers.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>ATMO 215: Climate Change in the 21st Century · Group project · Simplified teaching model, not an engineering design tool.</footer>
+
+<script>
+(function () {
+  // ---------- Model parameters (PLACEHOLDERS — replace from course readings) ----------
+  const START = new Date().getFullYear() < 2026 ? 2026 : new Date().getFullYear(); // wall finished this year
+  const END = 2100;
+  const RATE_NOW = 0.004;   // m/yr, today's rate of sea level rise  [placeholder]
+  const BETA = 0.25;        // m, Gumbel scale of annual max surge   [placeholder]
+  const Y100 = -Math.log(-Math.log(0.99)); // reduced variate for 1%/yr event ≈ 4.60
+
+  const years = [];
+  for (let y = START; y <= END; y++) years.push(y);
+
+  // Sea level rise above today: quadratic, starting at RATE_NOW, reaching total by END
+  function seaLevel(year, total) {
+    const T = END - START, t = year - START;
+    const b = (total - RATE_NOW * T) / (T * T);
+    return Math.max(0, RATE_NOW * t + b * t * t);
+  }
+  // Chance per year that annual-max surge exceeds x (Gumbel)
+  function exceed(x, surge100) {
+    const mu = surge100 - BETA * Y100;
+    return 1 - Math.exp(-Math.exp(-(x - mu) / BETA));
+  }
+
+  // ---------- Formatting ----------
+  function pct(p) {
+    const v = p * 100;
+    if (v < 0.01) return "<0.01%";
+    if (v < 1) return v.toFixed(2) + "%";
+    if (v < 10) return v.toFixed(1) + "%";
+    if (v > 99.5 && v < 100) return ">99%";
+    return Math.round(v) + "%";
+  }
+  function pctNum(p) { // for table, number only
+    const v = p * 100;
+    if (v < 0.01) return "<0.01";
+    if (v < 1) return v.toFixed(2);
+    if (v < 10) return v.toFixed(1);
+    if (v > 99.5 && v < 100) return ">99";
+    return String(Math.round(v));
+  }
+  function oneIn(p) {
+    if (p <= 0.0001) return "more than 10,000";
+    const n = 1 / p;
+    if (n < 1.5) return "~1 (nearly every year)";
+    return Math.round(n).toLocaleString();
+  }
+  function oneInPhrase(p) {
+    if (p <= 0.0001) return "less than once in 10,000 years";
+    const n = 1 / p;
+    if (n < 1.5) return "nearly every year";
+    return "about once every " + Math.round(n).toLocaleString() + " years";
+  }
+
+  // ---------- Elements ----------
+  const $ = id => document.getElementById(id);
+  const wallEl = $("wall"), slrEl = $("slr"), surgeEl = $("surge"), logEl = $("logscale");
+  $("start-yr").textContent = START;
+  $("chart-yrs").textContent = START + "–" + END;
+
+  let state = null;
+
+  function compute() {
+    const H = +wallEl.value, S = +slrEl.value, S100 = +surgeEl.value;
+    let survive = 1, expected = 0, crossYear = null;
+    const rows = years.map(y => {
+      const sl = seaLevel(y, S);
+      const need = H - sl;
+      const p = exceed(need, S100);
+      const p0 = exceed(H, S100);
+      survive *= (1 - p);
+      expected += p;
+      if (crossYear === null && p > 0.01) crossYear = y;
+      return { year: y, sl, need, p, p0, cum: 1 - survive };
+    });
+    return { H, S, S100, rows, lifetime: 1 - survive, expected, crossYear };
+  }
+
+  function update() {
+    state = compute();
+    const { H, S, S100, rows, lifetime, expected, crossYear } = state;
+    $("wall-val").textContent = H.toFixed(1) + " m";
+    $("slr-val").textContent = S.toFixed(2) + " m";
+    $("surge-val").textContent = S100.toFixed(1) + " m";
+
+    $("lifetime").textContent = pct(lifetime);
+    $("lifetime").style.color = lifetime > 0.5 ? "var(--danger)" : (lifetime < 0.1 ? "var(--safe)" : "var(--text-primary)");
+    $("lifetime-sub").textContent = lifetime > 0.5
+      ? "More likely than not that the wall fails at least once in its lifetime."
+      : lifetime < 0.1 ? "The wall very likely holds for its whole lifetime."
+      : "A real chance the wall fails at least once in its lifetime.";
+
+    const first = rows[0], last = rows[rows.length - 1];
+    $("p-now").textContent = pct(first.p);
+    $("p-2100").textContent = pct(last.p);
+    $("expected").textContent = expected < 0.05 ? "<0.05" : expected < 10 ? expected.toFixed(1) : Math.round(expected);
+    $("cross-yr").textContent = first.p > 0.01 ? "Already below" : (crossYear ? crossYear : "Not before 2100");
+
+    drawChart();
+    drawSection();
+    drawTable();
+  }
+
+  // ---------- Chart ----------
+  const svg = $("chart"), tip = $("tooltip");
+  const W = 720, Hh = 380, M = { l: 64, r: 18, t: 14, b: 52 };
+  const iw = W - M.l - M.r, ih = Hh - M.t - M.b;
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || svg).appendChild(e);
+    return e;
+  }
+  function niceMax(v) {
+    const steps = [0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.8, 1];
+    for (const s of steps) if (v <= s) return s;
+    return 1;
+  }
+  function tickStep(max) {
+    const target = max / 5;
+    const cands = [0.001, 0.002, 0.0025, 0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.25];
+    for (const c of cands) if (c >= target) return c;
+    return 0.25;
+  }
+
+  let xScale, yScale;
+  function drawChart() {
+    svg.innerHTML = "";
+    const { rows } = state;
+    const log = logEl.checked;
+    const xs = y => M.l + (y - START) / (END - START) * iw;
+    let ys, ticks;
+    if (log) {
+      const lo = 1e-4, hi = 1;
+      ys = p => M.t + ih - (Math.log10(Math.max(lo, Math.min(hi, p))) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * ih;
+      ticks = [1e-4, 1e-3, 1e-2, 1e-1, 1];
+    } else {
+      const maxP = Math.max(0.012, ...rows.map(r => r.p));
+      const ymax = niceMax(maxP * 1.05);
+      const step = tickStep(ymax);
+      ys = p => M.t + ih - (p / ymax) * ih;
+      ticks = [];
+      for (let v = 0; v <= ymax + 1e-9; v += step) ticks.push(+v.toFixed(6));
+    }
+    xScale = xs; yScale = ys;
+
+    // gridlines + y labels
+    ticks.forEach(t => {
+      const y = ys(t);
+      el("line", { x1: M.l, x2: M.l + iw, y1: y, y2: y, stroke: "var(--grid)", "stroke-width": 1 });
+      const lab = el("text", { x: M.l - 8, y: y + 4, "text-anchor": "end", "font-size": 12, fill: "var(--text-secondary)" });
+      lab.textContent = log ? (t * 100 >= 1 ? (t * 100) + "%" : (t * 100).toFixed(t < 1e-3 ? 2 : 1) + "%") : (t * 100).toFixed(t * 100 < 1 && t !== 0 ? 1 : (Number.isInteger(t * 100) ? 0 : 1)) + "%";
+    });
+    // x ticks
+    const xt = [];
+    for (let y = Math.ceil(START / 10) * 10; y <= END; y += 10) xt.push(y);
+    if (xt[0] - START >= 4) xt.unshift(START);
+    xt.forEach(y => {
+      const x = xs(y);
+      el("line", { x1: x, x2: x, y1: M.t + ih, y2: M.t + ih + 5, stroke: "var(--text-muted)" });
+      const lab = el("text", { x, y: M.t + ih + 20, "text-anchor": "middle", "font-size": 12, fill: "var(--text-secondary)" });
+      lab.textContent = y;
+    });
+    // axes
+    el("line", { x1: M.l, x2: M.l + iw, y1: M.t + ih, y2: M.t + ih, stroke: "var(--text-muted)" });
+    const xl = el("text", { x: M.l + iw / 2, y: Hh - 8, "text-anchor": "middle", "font-size": 13, fill: "var(--text-primary)", "font-weight": 600 });
+    xl.textContent = "Year";
+    const yl = el("text", { x: 16, y: M.t + ih / 2, "text-anchor": "middle", "font-size": 13, fill: "var(--text-primary)", "font-weight": 600, transform: `rotate(-90 16 ${M.t + ih / 2})` });
+    yl.textContent = "Chance of overtopping per year (%)";
+
+    // 1% reference line
+    const y1 = ys(0.01);
+    el("line", { x1: M.l, x2: M.l + iw, y1, y2: y1, stroke: "var(--reference)", "stroke-width": 1.25, "stroke-dasharray": "2 3" });
+    const rl = el("text", { x: M.l + 6, y: y1 - 6, "font-size": 11.5, fill: "var(--reference)" });
+    rl.textContent = '1% per year ("100-year" standard)';
+
+    // baseline (no SLR)
+    const pathOf = key => rows.map((r, i) => (i ? "L" : "M") + xs(r.year).toFixed(1) + " " + ys(r[key]).toFixed(1)).join(" ");
+    el("path", { d: pathOf("p0"), fill: "none", stroke: "var(--baseline)", "stroke-width": 2, "stroke-dasharray": "5 4", "stroke-linecap": "round" });
+    // main line
+    el("path", { d: pathOf("p"), fill: "none", stroke: "var(--series-1)", "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" });
+
+    // end label
+    const last = rows[rows.length - 1];
+    const el2100 = el("text", { x: xs(END) - 4, y: Math.max(M.t + 12, ys(last.p) - 8), "text-anchor": "end", "font-size": 12, "font-weight": 700, fill: "var(--text-primary)" });
+    el2100.textContent = pct(last.p) + " in 2100";
+
+    // hover layer
+    const cross = el("line", { y1: M.t, y2: M.t + ih, stroke: "var(--text-muted)", "stroke-width": 1, opacity: 0 });
+    const dot0 = el("circle", { r: 4.5, fill: "var(--baseline)", stroke: "#fff", "stroke-width": 2, opacity: 0 });
+    const dot = el("circle", { r: 5, fill: "var(--series-1)", stroke: "#fff", "stroke-width": 2, opacity: 0 });
+    const hit = el("rect", { x: M.l, y: M.t, width: iw, height: ih, fill: "transparent", style: "cursor:crosshair" });
+
+    function move(evt) {
+      const pt = svg.createSVGPoint();
+      const src = evt.touches ? evt.touches[0] : evt;
+      pt.x = src.clientX; pt.y = src.clientY;
+      const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+      let yr = Math.round(START + (loc.x - M.l) / iw * (END - START));
+      yr = Math.max(START, Math.min(END, yr));
+      const r = rows[yr - START];
+      const x = xs(yr);
+      cross.setAttribute("x1", x); cross.setAttribute("x2", x); cross.setAttribute("opacity", 1);
+      dot.setAttribute("cx", x); dot.setAttribute("cy", ys(r.p)); dot.setAttribute("opacity", 1);
+      dot0.setAttribute("cx", x); dot0.setAttribute("cy", ys(r.p0)); dot0.setAttribute("opacity", 1);
+      tip.innerHTML = `<div class="yr">${yr}</div>
+        <div class="row"><span>Sea level rise so far</span><b>${r.sl.toFixed(2)} m</b></div>
+        <div class="row"><span>Surge needed to overtop</span><b>${r.need.toFixed(2)} m</b></div>
+        <div class="row"><span>Chance this year</span><b>${pct(r.p)}</b></div>
+        <div class="row"><span>Without sea level rise</span><b>${pct(r.p0)}</b></div>
+        <div class="row"><span>At least once by ${yr}</span><b>${pct(r.cum)}</b></div>
+        <div class="muted" style="margin-top:.2rem">Overtopped ${oneInPhrase(r.p)}</div>`;
+      const box = svg.getBoundingClientRect();
+      const px = (x / W) * box.width, py = (ys(r.p) / Hh) * box.height;
+      tip.style.opacity = 1;
+      const tw = tip.offsetWidth;
+      let left = px + 14;
+      if (left + tw > box.width) left = px - tw - 14;
+      tip.style.left = left + "px";
+      tip.style.top = Math.max(0, Math.min(box.height - tip.offsetHeight, py - 40)) + "px";
+    }
+    function leave() {
+      [cross, dot, dot0].forEach(e => e.setAttribute("opacity", 0));
+      tip.style.opacity = 0;
+    }
+    hit.addEventListener("mousemove", move);
+    hit.addEventListener("touchmove", e => { move(e); e.preventDefault(); }, { passive: false });
+    hit.addEventListener("mouseleave", leave);
+    hit.addEventListener("touchend", leave);
+  }
+
+  // ---------- Cross-section ----------
+  const xsSvg = $("section-svg");
+  function drawSection() {
+    xsSvg.innerHTML = "";
+    const { H, S, S100 } = state;
+    const W2 = 720, H2 = 260, top = 18, bottom = 30;
+    const maxM = 7.0; // vertical range in meters (−1 to 7 shown as 0..)
+    const minM = -1.0;
+    const yM = m => top + (H2 - top - bottom) * (1 - (m - minM) / (maxM - minM));
+    const wallX = 420, wallW = 22;
+    const add = (tag, a) => el(tag, a, xsSvg);
+
+    const stormLevel = S + S100;   // still water in 2100 during today's-100-yr storm
+    const over = stormLevel > H;
+
+    // sky
+    add("rect", { x: 0, y: 0, width: W2, height: H2, fill: "#f7fafd" });
+    // sea: 2100 storm water (light), 2100 mean sea, today's mean sea
+    add("rect", { x: 0, y: yM(stormLevel), width: wallX, height: yM(minM) - yM(stormLevel), fill: "var(--storm)", opacity: .55 });
+    add("rect", { x: 0, y: yM(S), width: wallX, height: yM(minM) - yM(S), fill: "var(--sea)", opacity: .55 });
+    add("rect", { x: 0, y: yM(0), width: wallX, height: yM(minM) - yM(0), fill: "var(--sea)", opacity: .35 });
+    // land behind wall (city), slightly above today's sea level
+    const landTop = 0.8;
+    add("path", { d: `M${wallX} ${yM(landTop)} L${W2} ${yM(landTop + 0.4)} L${W2} ${H2} L${wallX} ${H2} Z`, fill: "var(--land)" });
+    // flooding on land if overtopped
+    if (over) {
+      add("path", { d: `M${wallX + wallW} ${yM(landTop) + 2} L${wallX + 150} ${yM(landTop + 0.09)} L${wallX + 150} ${yM(landTop) + 8} L${wallX + wallW} ${yM(landTop) + 10} Z`, fill: "var(--storm)", opacity: .8 });
+      add("path", { d: `M${wallX - 4} ${yM(stormLevel)} Q ${wallX + 10} ${yM(H) - 16} ${wallX + wallW + 18} ${yM(landTop) + 2}`, fill: "none", stroke: "var(--sea)", "stroke-width": 3, opacity: .8 });
+    }
+    // seabed
+    add("rect", { x: 0, y: yM(minM) - 6, width: wallX, height: 6 + bottom, fill: "#b9a982" });
+    // simple buildings
+    [[480, 1.6, 40], [535, 2.6, 34], [585, 1.9, 46], [645, 3.0, 38]].forEach(([x, h, w]) => {
+      const base = landTop + (x - wallX) / (W2 - wallX) * 0.4;
+      add("rect", { x, y: yM(base + h), width: w, height: yM(base) - yM(base + h), fill: "#d9d6cd", stroke: "#b5b2a8" });
+    });
+    // wall
+    add("rect", { x: wallX, y: yM(H), width: wallW, height: yM(minM) - yM(H), fill: "var(--wall)", rx: 2 });
+
+    // level lines + labels
+    function level(m, label, color, dash, side) {
+      add("line", { x1: 0, x2: wallX + wallW + 6, y1: yM(m), y2: yM(m), stroke: color, "stroke-width": 1.25, "stroke-dasharray": dash || "" });
+      const t = add("text", { x: side === "right" ? wallX + wallW + 10 : 10, y: yM(m) - 5, "font-size": 12, fill: color, "font-weight": 600 });
+      t.textContent = label;
+    }
+    level(0, "Today's average sea level (0 m)", "#1d4f8c", "4 3");
+    level(S, `2100 average sea level (+${S.toFixed(2)} m)`, "#1d4f8c", "");
+    level(stormLevel, `2100 + 100-year storm: ${stormLevel.toFixed(2)} m`, over ? "var(--danger)" : "#1d4f8c", "");
+    const wl = add("text", { x: wallX + wallW + 10, y: yM(H) + 4, "font-size": 12, "font-weight": 700, fill: "var(--text-primary)" });
+    wl.textContent = `Top of wall: ${H.toFixed(1)} m`;
+
+    $("xs-caption").innerHTML = over
+      ? `<strong style="color:var(--danger)">Overtopped:</strong> by 2100, a storm as big as today's 100-year surge would put water <strong>${(stormLevel - H).toFixed(2)} m above</strong> the top of the wall.`
+      : `<strong style="color:var(--safe)">Holds:</strong> by 2100, a storm as big as today's 100-year surge would still be <strong>${(H - stormLevel).toFixed(2)} m below</strong> the top of the wall.`;
+  }
+
+  // ---------- Table ----------
+  function drawTable() {
+    const tbody = document.querySelector("#table tbody");
+    const pick = [START];
+    for (let y = Math.ceil((START + 1) / 10) * 10; y <= END; y += 10) pick.push(y);
+    tbody.innerHTML = pick.map(y => {
+      const r = state.rows[y - START];
+      return `<tr class="${r.p > 0.01 ? "over-1" : ""}">
+        <td>${y}</td><td>${r.sl.toFixed(2)}</td><td>${r.need.toFixed(2)}</td>
+        <td class="p">${pctNum(r.p)}</td><td>${oneIn(r.p)}</td><td>${pctNum(r.cum)}</td></tr>`;
+    }).join("");
+  }
+
+  [wallEl, slrEl, surgeEl].forEach(e => e.addEventListener("input", update));
+  logEl.addEventListener("change", drawChart);
+  window.addEventListener("resize", () => { tip.style.opacity = 0; });
+  update();
+})();
+</script>
+</body>
+</html>
